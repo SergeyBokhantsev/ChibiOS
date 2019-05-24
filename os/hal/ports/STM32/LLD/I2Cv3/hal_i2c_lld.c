@@ -981,8 +981,10 @@ void i2c_lld_stop(I2CDriver *i2cp) {
 #endif
 #if defined(STM32_I2C_BDMA_REQUIRED)
     {
-      bdmaStreamRelease(i2cp->rx.bdma);
-      bdmaStreamRelease(i2cp->tx.bdma);
+      bdmaStreamFreeI(i2cp->rx.bdma);
+      i2cp->rx.bdma = NULL;
+      bdmaStreamFreeI(i2cp->tx.bdma);
+      i2cp->tx.bdma = NULL;
     }
 #endif
 #if defined(STM32_I2C_DMA_REQUIRED) && defined(STM32_I2C_BDMA_REQUIRED)
@@ -990,8 +992,10 @@ void i2c_lld_stop(I2CDriver *i2cp) {
 #endif
 #if defined(STM32_I2C_DMA_REQUIRED)
     {
-      dmaStreamRelease(i2cp->rx.dma);
-      dmaStreamRelease(i2cp->tx.dma);
+      dmaStreamFreeI(i2cp->rx.dma);
+      i2cp->rx.dma = NULL;
+      dmaStreamFreeI(i2cp->tx.dma);
+      i2cp->tx.dma = NULL;
     }
 #endif
 
@@ -1016,6 +1020,43 @@ void i2c_lld_stop(I2CDriver *i2cp) {
 #if STM32_I2C_USE_I2C4
     if (&I2CD4 == i2cp) {
       rccDisableI2C4();
+    }
+#endif
+  }
+}
+
+/**
+ * @brief   Disable DMA, but leave the peripheral enabled
+ *
+ * @param[in] i2cp      pointer to the @p I2CDriver object
+ *
+ * @notapi
+ */
+void i2c_lld_soft_stop(I2CDriver *i2cp) {
+
+  /* If not in stopped state then disables the I2C clock.*/
+  if (i2cp->state != I2C_STOP) {
+
+#if defined(STM32_I2C_DMA_REQUIRED) && defined(STM32_I2C_BDMA_REQUIRED)
+    if(i2cp->is_bdma)
+#endif
+#if defined(STM32_I2C_BDMA_REQUIRED)
+    {
+      bdmaStreamFreeI(i2cp->rx.bdma);
+      i2cp->rx.bdma = NULL;
+      bdmaStreamFreeI(i2cp->tx.bdma);
+      i2cp->tx.bdma = NULL;
+    }
+#endif
+#if defined(STM32_I2C_DMA_REQUIRED) && defined(STM32_I2C_BDMA_REQUIRED)
+    else
+#endif
+#if defined(STM32_I2C_DMA_REQUIRED)
+    {
+      dmaStreamFreeI(i2cp->rx.dma);
+      i2cp->rx.dma = NULL;
+      dmaStreamFreeI(i2cp->tx.dma);
+      i2cp->tx.dma = NULL;
     }
 #endif
   }
