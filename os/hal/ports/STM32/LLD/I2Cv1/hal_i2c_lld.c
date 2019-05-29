@@ -920,8 +920,8 @@ void i2c_lld_soft_stop(I2CDriver *i2cp) {
   if (i2cp->state != I2C_STOP) {
 
     /* I2C disable.*/
-    dmaStreamFreeI(i2cp->dmatx);
-    dmaStreamFreeI(i2cp->dmarx);
+    dmaStreamRelease(i2cp->dmatx);
+    dmaStreamRelease(i2cp->dmarx);
     i2cp->dmatx = NULL;
     i2cp->dmarx = NULL;
 
